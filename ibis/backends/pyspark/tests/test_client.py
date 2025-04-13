@@ -3,7 +3,11 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
-from pyspark.errors.exceptions.captured import AnalysisException
+
+try:
+    from pyspark.errors.exceptions.captured import AnalysisException
+except ImportError:
+    AnalysisException = None
 
 import ibis
 
@@ -253,7 +257,9 @@ def test_create_table_kwargs(con, format, database_param):
         ).fillna(value=pd.NA)
 
         compare_tables(expected_merged, get_table().fillna(value=pd.NA))
-    else:  # Not supported on write for parquet or csv
+    elif AnalysisException is None:
+        pass
+    else:
         with pytest.raises(AnalysisException) as _:
             con.create_table(
                 table_name,
